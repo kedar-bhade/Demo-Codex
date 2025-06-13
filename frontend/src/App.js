@@ -1,16 +1,14 @@
-import DisplayUsers from './Components/DisplayUsers';
-import DeleteUser from './Components/DeleteUsers';
-import InsertUser from './Components/InsertUser';
-import UpdateData from './Components/UpdateUser';
+import Header from './Components/Header';
+import Footer from './Components/Footer';
+import AuthForm from './Components/AuthForm';
 
 function App() {
   return (
-   <>
-   <DisplayUsers/>
-   <InsertUser/>
-   <DeleteUser/>
-   <UpdateData/>
-   </>
+    <>
+      <Header />
+      <AuthForm />
+      <Footer />
+    </>
   );
 }
 
