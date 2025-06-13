@@ -1,16 +1,23 @@
 namespace UserManagementApi.Model;
-using System;
+
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 public class User
 {
-    public int userid { get; set; }
+    [Column("userid")]
+    public int UserId { get; set; }
 
     [Required]
-    public string username { get; set; } = "";
+    [Column("username")]
+    public string Username { get; set; } = string.Empty;
 
     [Required]
-    public string course { get; set; } = "";
+    [Column("course")]
+    public string Course { get; set; } = string.Empty;
 
     [Required]
-    public string purchasedate { get; set; } = "";
+    [Column("purchasedate")]
+    public string PurchaseDate { get; set; } = string.Empty;
 }
+

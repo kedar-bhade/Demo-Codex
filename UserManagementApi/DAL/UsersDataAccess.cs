@@ -1,106 +1,100 @@
-namespace UserManagementApi.DAL;
-
-using UserManagementApi.Model;
-using System.Data;
 using MySql.Data.MySqlClient;
+using UserManagementApi.Model;
+
+namespace UserManagementApi.DAL;
 
 public class UsersDataAccess
 {
-    public static string conString = @"server=localhost; port=3306; user=root; password=root; database=userinfo";
-    public static List<User> GetAllUsers()
-    {
-        List<User> allNotes = new List<User>();
-        MySqlConnection con = new MySqlConnection(conString);
+    private readonly string _connectionString;
+    private readonly ILogger<UsersDataAccess> _logger;
 
+    public UsersDataAccess(IConfiguration configuration, ILogger<UsersDataAccess> logger)
+    {
+        _connectionString = configuration.GetConnectionString("DefaultConnection") ?? string.Empty;
+        _logger = logger;
+    }
+
+    public async Task<List<User>> GetAllUsersAsync()
+    {
+        var users = new List<User>();
         try
         {
-            string query = "select * from users";
-            DataSet ds = new DataSet();
-            MySqlCommand cmd = new MySqlCommand(query, con);
-            MySqlDataAdapter da = new MySqlDataAdapter(cmd);
-            da.Fill(ds);
-
-            DataTable dt = ds.Tables[0];
-            DataRowCollection rows = dt.Rows;
-            foreach (DataRow row in rows)
+            using var con = new MySqlConnection(_connectionString);
+            await con.OpenAsync();
+            using var cmd = new MySqlCommand("select * from users", con);
+            using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
             {
-                User user = new User
+                var user = new User
                 {
-                    userid = int.Parse(row["userid"].ToString()),
-                    username = row["username"].ToString(),
-                    course = row["course"].ToString(),
-                    purchasedate = row["purchasedate"].ToString()
+                    UserId = reader.GetInt32("userid"),
+                    Username = reader.GetString("username"),
+                    Course = reader.GetString("course"),
+                    PurchaseDate = reader.GetString("purchasedate")
                 };
-                allNotes.Add(user);
+                users.Add(user);
             }
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Console.WriteLine(e.Message);
+            _logger.LogError(ex, "Error retrieving users");
         }
-        return allNotes;
+        return users;
     }
 
-    public static void SaveNewUser(User user)
+    public async Task SaveNewUserAsync(User user)
     {
-        MySqlConnection con = new MySqlConnection(conString);
-
         try
         {
-            con.Open();
-            string query = $"insert into users(username, course, purchasedate) values('{user.username}', '{user.course}', '{user.purchasedate}')";
-            MySqlCommand command = new MySqlCommand(query, con);
-            command.ExecuteNonQuery();
+            using var con = new MySqlConnection(_connectionString);
+            await con.OpenAsync();
+            const string query = "insert into users(username, course, purchasedate) values(@username,@course,@purchasedate)";
+            using var cmd = new MySqlCommand(query, con);
+            cmd.Parameters.AddWithValue("@username", user.Username);
+            cmd.Parameters.AddWithValue("@course", user.Course);
+            cmd.Parameters.AddWithValue("@purchasedate", user.PurchaseDate);
+            await cmd.ExecuteNonQueryAsync();
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Console.WriteLine(e.Message);
-        }
-        finally
-        {
-            con.Close();
-        }
-    }
-
-    public static void DeleteUserById(int id)
-    {
-        MySqlConnection con = new MySqlConnection(conString);
-
-        try
-        {
-            con.Open();
-            string query = "delete from users where userid =" + id;
-            MySqlCommand command = new MySqlCommand(query, con);
-            command.ExecuteNonQuery();
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e.Message);
-        }
-        finally
-        {
-            con.Close();
+            _logger.LogError(ex, "Error saving user");
         }
     }
 
-    public static void UpdateUser(int id, User user)
+    public async Task DeleteUserByIdAsync(int id)
     {
-        MySqlConnection con = new MySqlConnection(conString);
-
         try
         {
-            con.Open();
-            string query = $"update users set username='{user.username}', course='{user.course}', purchasedate='{user.purchasedate}' where userid={id}";
-            MySqlCommand command = new MySqlCommand(query, con);
-            command.ExecuteNonQuery();
+            using var con = new MySqlConnection(_connectionString);
+            await con.OpenAsync();
+            const string query = "delete from users where userid=@id";
+            using var cmd = new MySqlCommand(query, con);
+            cmd.Parameters.AddWithValue("@id", id);
+            await cmd.ExecuteNonQueryAsync();
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Console.WriteLine(e.Message);
+            _logger.LogError(ex, "Error deleting user {UserId}", id);
         }
-        finally
+    }
+
+    public async Task UpdateUserAsync(int id, User user)
+    {
+        try
         {
-            con.Close();
+            using var con = new MySqlConnection(_connectionString);
+            await con.OpenAsync();
+            const string query = "update users set username=@username, course=@course, purchasedate=@purchasedate where userid=@id";
+            using var cmd = new MySqlCommand(query, con);
+            cmd.Parameters.AddWithValue("@username", user.Username);
+            cmd.Parameters.AddWithValue("@course", user.Course);
+            cmd.Parameters.AddWithValue("@purchasedate", user.PurchaseDate);
+            cmd.Parameters.AddWithValue("@id", id);
+            await cmd.ExecuteNonQueryAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating user {UserId}", id);
         }
     }
 }
