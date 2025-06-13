@@ -1,51 +1,51 @@
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Cors;
-namespace UsersController;
-using UserManagementApi.Model;
+using Microsoft.AspNetCore.Mvc;
 using UserManagementApi.DAL;
+using UserManagementApi.Model;
+
+namespace UserManagementApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
     private readonly ILogger<UsersController> _logger;
+    private readonly UsersDataAccess _dataAccess;
 
-    public UsersController(ILogger<UsersController> logger)
+    public UsersController(ILogger<UsersController> logger, UsersDataAccess dataAccess)
     {
         _logger = logger;
+        _dataAccess = dataAccess;
     }
 
     [HttpGet]
-    [EnableCors()]
-    public IEnumerable<User> GetAllUsers()
+    [EnableCors]
+    public async Task<IEnumerable<User>> GetAllUsers()
     {
-        List<User> users = UsersDataAccess.GetAllUsers();
-        return users;
+        return await _dataAccess.GetAllUsersAsync();
     }
 
     [HttpPost]
-    [EnableCors()]
-    public IActionResult InsertNewUser(User user)
+    [EnableCors]
+    public async Task<IActionResult> InsertNewUser(User user)
     {
-        UsersDataAccess.SaveNewUser(user);
+        await _dataAccess.SaveNewUserAsync(user);
         return Ok(new { message = "User created" });
     }
 
-    [Route("{id}")]
-    [HttpDelete]
-    [EnableCors()]
-    public IActionResult DeleteOneUser(int id)
+    [HttpDelete("{id}")]
+    [EnableCors]
+    public async Task<IActionResult> DeleteOneUser(int id)
     {
-        UsersDataAccess.DeleteUserById(id);
+        await _dataAccess.DeleteUserByIdAsync(id);
         return Ok(new { message = "User deleted" });
     }
 
-    [Route("{id}")]
-    [HttpPut]
-    [EnableCors()]
-    public IActionResult UpdateUser(int id, [FromBody] User user)
+    [HttpPut("{id}")]
+    [EnableCors]
+    public async Task<IActionResult> UpdateUser(int id, [FromBody] User user)
     {
-        UsersDataAccess.UpdateUser(id, user);
+        await _dataAccess.UpdateUserAsync(id, user);
         return Ok(new { message = "User updated" });
     }
 }
