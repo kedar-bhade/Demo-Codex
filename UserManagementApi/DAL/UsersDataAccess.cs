@@ -3,7 +3,7 @@ using UserManagementApi.Model;
 
 namespace UserManagementApi.DAL;
 
-public class UsersDataAccess
+public class UsersDataAccess : IUsersDataAccess
 {
     private readonly string _connectionString;
     private readonly ILogger<UsersDataAccess> _logger;
@@ -27,10 +27,10 @@ public class UsersDataAccess
             {
                 var user = new User
                 {
-                    UserId = reader.GetInt32("userid"),
-                    Username = reader.GetString("username"),
-                    Course = reader.GetString("course"),
-                    PurchaseDate = reader.GetString("purchasedate")
+                    UserId = reader.GetFieldValue<int>(reader.GetOrdinal("userid")),
+                    Username = reader.GetFieldValue<string>(reader.GetOrdinal("username")),
+                    Course = reader.GetFieldValue<string>(reader.GetOrdinal("course")),
+                    PurchaseDate = reader.GetFieldValue<string>(reader.GetOrdinal("purchasedate"))
                 };
                 users.Add(user);
             }

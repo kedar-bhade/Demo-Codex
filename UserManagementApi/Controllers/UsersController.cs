@@ -10,9 +10,9 @@ namespace UserManagementApi.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly ILogger<UsersController> _logger;
-    private readonly UsersDataAccess _dataAccess;
+    private readonly IUsersDataAccess _dataAccess;
 
-    public UsersController(ILogger<UsersController> logger, UsersDataAccess dataAccess)
+    public UsersController(ILogger<UsersController> logger, IUsersDataAccess dataAccess)
     {
         _logger = logger;
         _dataAccess = dataAccess;
