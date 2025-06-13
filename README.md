@@ -2,6 +2,8 @@
 
 This repository contains two sample ASP.NET Web API projects and a React frontend for managing users.
 
+See [docs/architecture.md](docs/architecture.md) for an overview of the application architecture.
+
 ## Prerequisites
 - .NET 6 SDK
 - Node.js with npm
